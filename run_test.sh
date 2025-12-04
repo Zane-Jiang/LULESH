@@ -13,5 +13,6 @@ if [ $REBUILD -eq 1 ]; then
 fi
 
 MODE=${2:-111}    
-run_and_analyze $MODE ./build/lulesh2.0 -i 2 -s 400
+# Must use absolute path for the program when using addr2line in analysis
+run_and_analyze $MODE $(realpath ./build/lulesh2.0) -i 2 -s 400
 popd
