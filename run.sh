@@ -7,7 +7,7 @@ extract_fom_metrics() {
     
     echo "Run,FOM_z_s" > "$csv_output"
     
-    for i in 1 2 3 4; do
+    for i in 1 2 3 4 5; do
         local log_file="${OUT_RESULT_DIR}/log_${i}"
         if [ -f "$log_file" ]; then
             local fom=$(grep -E "^FOM" "$log_file" | awk -F'=' '{print $2}' | awk '{print $1}')
