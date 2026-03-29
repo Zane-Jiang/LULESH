@@ -198,6 +198,8 @@ else
 fi
 
 pushd benchmark/LULESH
+LULESH_ARGS_STR=${LULESH_ARGS_STR:-"-i 1 -s 500"}
+read -r -a LULESH_ARGS_ARR <<< "${LULESH_ARGS_STR}"
 if [ $REBUILD -eq 1 ]; then
     echo "rebuilding...."
     pushd build
@@ -214,18 +216,18 @@ if [ "$MODE" == "ratio" ]; then
     RATIO_OUTPUT_DIR="${3:-result/ratio_benchmark}"
     run_best_ratio_benchmark "$RATIO_OUTPUT_DIR"
 elif [ "$MODE" == "latency" ]; then
-    run_and_measure_latency $(realpath ./build/lulesh2.0) -i 2 -s 500
+    run_and_measure_latency $(realpath ./build/lulesh2.0) "${LULESH_ARGS_ARR[@]}"
 elif [ "$MODE" == "vis_miss" ]; then
-    run_and_analyze_vis_miss $(realpath ./build/lulesh2.0) -i 2 -s 500
+    run_and_analyze_vis_miss $(realpath ./build/lulesh2.0) "${LULESH_ARGS_ARR[@]}"
 elif [ "$MODE" == "combine" ]; then
-    run_combine $(realpath ./build/lulesh2.0) -i 2 -s 500
+    run_combine $(realpath ./build/lulesh2.0) "${LULESH_ARGS_ARR[@]}"
     
     # Extract FOM metrics after combine runs complete
     echo "[INFO] Extracting FOM metrics from combine log files..."
     extract_combine_fom_metrics
 else
     # Must use absolute path for the program when using addr2line in analysis
-    run_and_analyze $MODE $(realpath ./build/lulesh2.0) -i 2 -s 500
+    run_and_analyze $MODE $(realpath ./build/lulesh2.0) "${LULESH_ARGS_ARR[@]}"
 
     # Extract FOM metrics after all runs complete
     echo "[INFO] Extracting FOM metrics from log files..."
