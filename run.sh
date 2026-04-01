@@ -1,7 +1,7 @@
 #!/bin/bash
 export OMP_NUM_THREADS=120
 
-# Extract FOM metrics from log files and save to CSV
+
 extract_fom_metrics() {
     local csv_output="${result_dir}/fom_metrics.csv"
     
@@ -28,7 +28,7 @@ extract_fom_metrics() {
     echo "================================="
 }
 
-# Extract FOM from ratio benchmark logs and generate plot (supports dual mode)
+
 extract_ratio_fom_and_plot() {
     local output_dir="$1"
     local fom_csv="${output_dir}/fom_ratio_results.csv"
@@ -156,43 +156,14 @@ run_best_ratio_benchmark() {
     extract_ratio_fom_and_plot "$output_dir"
 }
 
-# Extract FOM metrics from combine benchmark logs
-extract_combine_fom_metrics() {
-    local csv_output="${OUT_RESULT_DIR}/fom_combine_metrics.csv"
-    
-    echo "Run,NumaBalance,FOM_z_s" > "$csv_output"
-    
-    for mode in "off" "on"; do
-        local log_file="${OUT_RESULT_DIR}/log_numabalance_${mode}.log"
-        if [ -f "$log_file" ]; then
-            local fom=$(grep -E "^FOM" "$log_file" | awk -F'=' '{print $2}' | awk '{print $1}')
-            fom=${fom:-N/A}
-            
-            echo "numabal_${mode},${mode},${fom}" >> "$csv_output"
-            echo "[INFO] NumaBalance ${mode}: FOM=${fom} z/s"
-        else
-            echo "[WARN] Log file not found: $log_file"
-        fi
-    done
-    
-    echo "[INFO] FOM metrics saved to: $csv_output"
-    
-    echo ""
-    echo "========== Combine FOM Summary =========="
-    column -t -s',' "$csv_output"
-    echo "========================================="
-}
+
 
 REBUILD=$1
 MODE=${2:-111}
 if [ "$MODE" == "ratio" ]; then
-    source benchmark/script/run_common_best_ratio.sh
+    source benchmark/script/measurement/run_common_best_ratio.sh
 elif [ "$MODE" == "latency" ]; then
     source benchmark/script/run_measure_latency.sh
-elif [ "$MODE" == "combine" ]; then
-    source benchmark/script/run_combine.sh
-elif [ "$MODE" == "vis_miss" ]; then
-    source benchmark/script/run_measure_miss.sh
 else
     source benchmark/script/run_common.sh
 fi
@@ -217,14 +188,6 @@ if [ "$MODE" == "ratio" ]; then
     run_best_ratio_benchmark "$RATIO_OUTPUT_DIR"
 elif [ "$MODE" == "latency" ]; then
     run_and_measure_latency $(realpath ./build/lulesh2.0) "${LULESH_ARGS_ARR[@]}"
-elif [ "$MODE" == "vis_miss" ]; then
-    run_and_analyze_vis_miss $(realpath ./build/lulesh2.0) "${LULESH_ARGS_ARR[@]}"
-elif [ "$MODE" == "combine" ]; then
-    run_combine $(realpath ./build/lulesh2.0) "${LULESH_ARGS_ARR[@]}"
-    
-    # Extract FOM metrics after combine runs complete
-    echo "[INFO] Extracting FOM metrics from combine log files..."
-    extract_combine_fom_metrics
 else
     # Must use absolute path for the program when using addr2line in analysis
     run_and_analyze $MODE $(realpath ./build/lulesh2.0) "${LULESH_ARGS_ARR[@]}"
